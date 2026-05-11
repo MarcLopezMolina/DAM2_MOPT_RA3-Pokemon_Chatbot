@@ -44,7 +44,6 @@ Recibe la pregunta del usuario y decide si:
 - debe salir del programa.
 
 Se ejecuta con:
-`bash
 python agente/rag_pokemon/agente_pokemon.py
 
 
