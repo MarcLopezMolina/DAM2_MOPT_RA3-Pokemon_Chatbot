@@ -47,3 +47,23 @@ rag_pokemon/
 ├── rag_faiss_pokemon.py
 ├── pipeline_pokemon.py
 └── logs_escalado.txt
+
+---
+
+## Archivos principales
+
+### `agente_pokemon.py`
+
+Es el chatbot principal.
+
+Recibe la pregunta del usuario y decide si:
+
+- puede responder como pregunta general;
+- debe llamar al RAG;
+- debe mostrar el estado del agente;
+- debe salir del programa.
+
+Se ejecuta con:
+
+```bash
+python agente/rag_pokemon/agente_pokemon.py
