@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flask Builder Tutor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='flask_tutor.css', v=asset_version) }}">
+  </head>
+  <body>
+    <main class="layout">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Ruta guiada</p>
+          <h1>Flask Builder Tutor</h1>
+          <p class="meta">Agente: {{ agent_base_url }} - Alumno: <span id="user-id">{{ user_id }}</span></p>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" id="state-button">Estado</button>
+          <button type="button" id="llm-button">LLM</button>
+          <button type="button" id="reset-button" class="danger">Reiniciar</button>
+        </div>
+      </header>
+
+      <section class="panel process-control" aria-label="Mapa del proceso del agente">
+        <div class="process-heading">
+          <div>
+            <p class="eyebrow">Mapa del proceso</p>
+            <h2>Estado, valores y siguiente accion</h2>
+          </div>
+          <div class="process-actions">
+            <button type="button" id="process-state-button" class="secondary">Actualizar estado</button>
+          </div>
+        </div>
+
+        <div class="process-grid">
+          <section>
+            <h3>Pasos del agente</h3>
+            <div id="process-steps" class="process-steps"></div>
+          </section>
+
+          <section>
+            <h3>Interacciones</h3>
+            <div id="process-interactions" class="process-interactions">
+              <p>Sin interacciones todavia.</p>
+            </div>
+          </section>
+
+          <section>
+            <h3>Valores detectados</h3>
+            <div id="process-values" class="process-values">
+              <p>Sin funcion analizada.</p>
+            </div>
+          </section>
+
+          <section>
+            <h3>Siguiente paso</h3>
+            <p id="process-next" class="process-next">Pega una funcion Python para empezar.</p>
+          </section>
+        </div>
+      </section>
+
+      <section class="workspace-grid">
+        <section class="work-column" aria-label="Navegacion e informes">
+          <section class="stepper" aria-label="Ruta del alumno">
+            <button type="button" class="step-tab active" data-step="0">1 Funcion</button>
+            <button type="button" class="step-tab" data-step="1">2 Analisis</button>
+            <button type="button" class="step-tab" data-step="2">3 Interfaz</button>
+            <button type="button" class="step-tab" data-step="3">4 Service</button>
+            <button type="button" class="step-tab" data-step="4">5 Route</button>
+            <button type="button" class="step-tab" data-step="5">6 Template/API</button>
+            <button type="button" class="step-tab" data-step="6">7 App factory</button>
+            <button type="button" class="step-tab" data-step="7">8 Extender</button>
+          </section>
+
+          <article class="panel lesson-panel">
+            <div class="lesson-heading">
+              <p id="step-kicker" class="eyebrow">Paso 1</p>
+              <h2 id="step-title">Crear una funcion Python</h2>
+              <p id="step-goal" class="goal">Empieza con una funcion simple que quieras convertir en Flask.</p>
+              <div class="step-overview" aria-label="Estado y acciones del paso">
+                <section>
+                  <h3>Estado dentro del agente</h3>
+                  <div id="current-step-state" class="inline-status"></div>
+                </section>
+                <section>
+                  <h3>Acciones de este paso</h3>
+                  <div id="current-step-actions" class="inline-actions"></div>
+                </section>
+                <section>
+                  <h3>Siguiente recomendado</h3>
+                  <p id="recommended-next" class="recommended-next">Pega una funcion Python para empezar.</p>
+                </section>
+              </div>
+            </div>
+
+            <div id="step-body" class="step-body"></div>
+
+            <div class="navigation">
+              <button type="button" id="prev-step-button" class="secondary">Paso anterior</button>
+              <button type="button" id="next-step-button">Ir al siguiente paso</button>
+            </div>
+          </article>
+
+          <section class="right-info-grid">
+            <aside class="panel side-panel">
+              <h2>Progreso del agente</h2>
+              <div id="state-summary" class="state-summary">
+                <p>Sin estado cargado.</p>
+              </div>
+            </aside>
+
+            <article class="panel artifact-panel">
+              <div class="panel-heading">
+                <h2>Codigo generado</h2>
+                <p class="meta">Se muestra para aprender. Esta interfaz no guarda archivos.</p>
+              </div>
+              <div id="artifact-list" class="artifact-list">
+                <p>No hay codigo generado todavia.</p>
+              </div>
+            </article>
+          </section>
+        </section>
+
+        <article class="panel chat-panel">
+          <div class="panel-heading">
+            <h2>Respuesta del tutor</h2>
+            <button type="button" id="clear-log-button" class="secondary">Limpiar</button>
+          </div>
+          <div id="conversation-log" class="conversation-log" aria-live="polite"></div>
+        </article>
+      </section>
+    </main>
+
+    <template id="function-step-template">
+      <div class="stack">
+        <p>Usa un ejemplo o pega tu propia funcion. El agente analizara nombre, parametros y retorno.</p>
+        <div class="examples">
+          <button type="button" data-example="hello">Usar hola mundo</button>
+          <button type="button" data-example="greet">Usar saludar(nombre)</button>
+          <button type="button" data-example="sum">Usar sumar(a, b)</button>
+        </div>
+        <label for="function-source">Funcion Python</label>
+        <textarea id="function-source" spellcheck="false"></textarea>
+        <div class="actions">
+          <button type="button" data-action="send-function">Analizar funcion</button>
+          <button type="button" data-question="explica que es una funcion Python en este contexto">Explicar funcion</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="analysis-step-template">
+      <div class="stack">
+        <p>Revisa que el agente haya entendido la funcion. Si el estado muestra parametros correctos, continua.</p>
+        <div class="actions">
+          <button type="button" data-action="show-state">Ver analisis detectado</button>
+          <button type="button" data-question="explica como analizas una funcion Python antes de generar Flask">Explicar analisis</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="interface-step-template">
+      <div class="stack">
+        <p>Elige como usara el usuario tu funcion desde Flask.</p>
+        <div class="choice-list">
+          <button type="button" data-send="hazlo con formulario">Formulario HTML</button>
+          <p>Para que una persona use la funcion desde una pagina web.</p>
+          <button type="button" data-send="hazlo como API JSON">API JSON</button>
+          <p>Para que otro programa envie datos y reciba JSON.</p>
+          <button type="button" data-send="quiero ambas">Formulario + API</button>
+          <p>Para aprender los dos caminos.</p>
+        </div>
+      </div>
+    </template>
+
+    <template id="service-step-template">
+      <div class="stack">
+        <p>El service conserva la logica Python separada de Flask.</p>
+        <div class="actions">
+          <button type="button" data-build-step="service">Generar service</button>
+          <button type="button" data-question="explica por que separamos un service en Flask">Explicar service</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="route-step-template">
+      <div class="stack">
+        <p>La route conecta una URL y una peticion HTTP con tu service.</p>
+        <div class="actions">
+          <button type="button" data-build-step="route">Generar route</button>
+          <button type="button" data-question="explica que es una route y un blueprint en Flask">Explicar route</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="template-step-template">
+      <div class="stack">
+        <p>Genera la salida visible: template HTML o informacion de API, segun la interfaz elegida.</p>
+        <div class="actions">
+          <button type="button" data-build-step="template">Generar template/API</button>
+          <button type="button" data-question="explica render_template y jsonify segun el modo elegido">Explicar salida</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="factory-step-template">
+      <div class="stack">
+        <p>El app factory crea la aplicacion Flask y registra los blueprints generados.</p>
+        <div class="actions">
+          <button type="button" data-build-step="app_factory">Generar app factory</button>
+          <button type="button" data-question="explica que es create_app y register_blueprint">Explicar app factory</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="extend-step-template">
+      <div class="stack">
+        <p>Anade capacidades Flask de una en una. Cada extension regenera las piezas afectadas.</p>
+        <div class="feature-grid">
+          <button type="button" data-send="quiero usar flash">flash</button>
+          <button type="button" data-send="quiero usar redirect">redirect</button>
+          <button type="button" data-send="quiero usar sesiones">sessions</button>
+          <button type="button" data-send="quiero static css">static files</button>
+          <button type="button" data-send="quiero template base">base template</button>
+          <button type="button" data-send="quiero error handlers">error handlers</button>
+          <button type="button" data-send="quiero tests">tests</button>
+        </div>
+        <div class="actions">
+          <button type="button" data-build-step="affected">Regenerar siguiente pieza</button>
+          <button type="button" data-question="explica como se incorporan capacidades Flask de forma incremental">Explicar extensiones</button>
+        </div>
+      </div>
+    </template>
+
+    <script src="{{ url_for('static', filename='flask_tutor.js', v=asset_version) }}"></script>
+  </body>
+</html>
