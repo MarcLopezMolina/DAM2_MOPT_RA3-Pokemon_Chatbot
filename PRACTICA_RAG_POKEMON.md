@@ -1,167 +1,49 @@
-# RAG Pokemon - Practica
+# Chatbot Pokémon con IA + RAG + Escalado a Humano
 
-## Que es esto?
+## ¿Qué es este proyecto?
 
-Un sistema de Preguntas y Respuestas (RAG) sobre datos de Pokemon. Combina:
+Este proyecto es una práctica de **chatbot con IA y RAG** usando un dataset de Pokémon en formato Excel.
 
-- **Agente**: Procesa preguntas e intenciones del usuario
-- **RAG (Retrieval-Augmented Generation)**: Busca informacion relevante en una base de datos vectorizada
-- **Flask API**: Expone todo como endpoints HTTP
+El sistema permite hacer preguntas sobre Pokémon y responde usando los datos del dataset. Además, incluye una lógica de decisión para saber cuándo puede responder automáticamente y cuándo debe escalar la consulta a un agente humano.
 
-## Estructura
+El proyecto combina:
 
-```
-agente/
-  ├── agente_pokemon.py          # Agente que procesa preguntas
-  ├── rag_pokemon/
-  │   ├── rag_pokemon.py         # Sistema RAG core
-  │   ├── crear_vectorstore.py   # Script para generar embeddings
-  │   ├── vectorstore/           # Base de datos FAISS (1025 Pokemon)
-  │   └── data/
-  │       └── dataSetFinal.xlsx  # Datos originales
+- **Agente conversacional**: analiza la intención del usuario.
+- **Preprocesado**: limpia y normaliza la pregunta.
+- **RAG semántico**: recupera información relevante usando embeddings y FAISS.
+- **Dataset Pokémon**: fuente principal de conocimiento.
+- **Pipeline de respuesta**: decide cómo responder según la pregunta.
+- **Escalado a humano**: si no hay información suficiente, registra la consulta y avisa al usuario.
 
-app/
-  └── routes/
-      └── pokemon_routes.py      # Endpoints HTTP para RAG
-```
+---
 
-## Como funciona
+## Objetivo de la práctica
 
-### 1. Creacion del Vectorstore
+El objetivo es construir un sistema que pueda:
 
-El Excel con datos Pokemon se convierte en embeddings y se guarda en FAISS:
+- Responder preguntas generales sobre Pokémon.
+- Consultar información específica desde un dataset.
+- Usar embeddings y FAISS para recuperación semántica.
+- Aplicar reglas de validación.
+- Escalar preguntas que no pueda resolver con seguridad.
+- Registrar los casos escalados.
 
-```bash
-python agente/rag_pokemon/crear_vectorstore.py
-```
+---
 
-Esto:
-- Carga 1025 Pokemon del Excel
-- Crea embeddings semanticos con `sentence-transformers`
-- Guarda vectorstore comprimido
+## Estructura del proyecto
 
-### 2. Consultas
-
-El agente puede procesar tres tipos de preguntas:
-
-**A) Busqueda por nombre**
-```
-"quien es pikachu"
-"dime sobre charizard"
-```
-
-**B) Busqueda por tipo**
-```
-"pokemon de tipo fuego"
-"cuales son los acuaticos"
-```
-
-**C) Consulta general/semantica**
-```
-"que pokemon tiene mejor defensa"
-"cuales son legendarios"
-"pokemon con mas HP"
-```
-
-### 3. API REST
-
-**Iniciar servidor:**
-```bash
-python run.py
-# Abierto en http://127.0.0.1:5000
-```
-
-**Endpoints:**
-
-```
-POST /pokemon/consultar
-Content-Type: application/json
-
-{
-  "pregunta": "quien es pikachu"
-}
-
-Response:
-{
-  "ok": true,
-  "pregunta": "quien es pikachu",
-  "respuesta": "Encontre a Pikachu",
-  "tipo": "busqueda_nombre",
-  "documentos": [...]
-}
-```
-
-```
-GET /pokemon/tipo/<tipo>
-
-/pokemon/tipo/fuego
-/pokemon/tipo/agua
-/pokemon/tipo/psiquico
-
-Response:
-{
-  "ok": true,
-  "tipo": "fuego",
-  "respuesta": "Encontre 5 Pokemon de tipo 'fuego'",
-  "documentos": [...]
-}
-```
-
-```
-GET /pokemon/buscar/<nombre>
-
-/pokemon/buscar/Pikachu
-/pokemon/buscar/Dragonite
-
-Response:
-{
-  "ok": true,
-  "nombre": "Pikachu",
-  "respuesta": "Encontre a Pikachu",
-  "documento": {...}
-}
-```
-
-## Archivo de Test
-
-Hay un `test_api.py` que prueba todos los endpoints:
-
-```bash
-python test_api.py
-```
-
-## Dependencias Principales
-
-- `langchain` + `langchain-community` - Framework RAG
-- `sentence-transformers` - Embeddings semanticos
-- `faiss-cpu` - Base de datos vectorial
-- `pandas` + `openpyxl` - Lectura de Excel
-- `flask` - API web
-
-## Datos del Excel
-
-26 columnas:
-- Basicos: id, Name, Generation
-- Fisicos: Height, Weight
-- Stats: HP, Attack, Defense, Sp.Atk, Sp.Def, Speed
-- Tipos: Type_1, Type_2
-- Clasificaciones: Is_Legendary, Is_Mythical, Is_Pseudo_Legendary
-- Otros: Capture_Rate, Base_Happiness, Abilities, Egg_Groups, etc.
-
-## Como extender
-
-1. **Añadir mas datos** - Modifica Excel y regenera vectorstore
-2. **Cambiar modelo embeddings** - En `HuggingFaceEmbeddings(model_name="...")`
-3. **Integrar con LLM** - Añade OpenAI/LLaMA para generar respuestas mejores
-4. **Frontend** - Crea HTML/JS que llame a los endpoints
-
-## Errores Comunes
-
-**"Vectorstore no encontrado"**
-→ Ejecuta primero `python agente/rag_pokemon/crear_vectorstore.py`
-
-**"No encontre informacion"**
-→ La pregunta es muy especifica. Intenta buscar por tipo o nombre
-
-**LangChainDeprecationWarning**
-→ Aviso normal, no afecta funcionamiento
+```text
+rag_pokemon/
+│
+├── data/
+│   └── dataSetFinal.xlsx
+│
+├── vectorstore/
+│   ├── pokemon.index
+│   └── chunks.txt
+│
+├── agente_pokemon.py
+├── crear_faiss.py
+├── rag_faiss_pokemon.py
+├── pipeline_pokemon.py
+└── logs_escalado.txt
